@@ -232,19 +232,21 @@ def kaelin:
     let board = (step [29,3] [1,0] board)
 
     // Throws a flame ball at Erkos and Gonk
-    //let board = (flame_ball [1,30] board)
+    //let board = (flame_ball [15,15] board)
 
     // Performs an example turn where Tophoro performs Earth Pull down
     //let casts = (casts_write EARTH_PULL [[30,1], {t}(t [0,1])] casts)
     //get [board, anims] = (exec_turn casts board)
 
     //let board = (piercing_bolt [24,1] [1,0] board)
-    let board = (quick_shot [1,30] (Cons RIGHT (Cons RIGHT (Cons RIGHT Nil))) board)
-    let board = (erkos_walk [2,30] (Cons [1,0] (Cons [1,0] (Cons [0,-1] Nil))) board)
+    //let board = (quick_shot [1,30] (Cons RIGHT (Cons RIGHT (Cons RIGHT Nil))) board)
+    //let board = (erkos_walk [2,30] (Cons [1,0] (Cons [1,0] (Cons [0,-1] Nil))) board)
+    let dirs = (Cons UP (Cons UP (Cons [0,0] (Cons [0,0] (Cons [0,0] (Cons [0,0] (Cons [0,0] (Cons [0,0] Nil))))))))
+    //let dirs = (Cons RIGHT (Cons RIGHT (Cons RIGHT Nil)))
+    let board = (shadow_flux [15,31] dirs board)
 
     (print_board board)
     //board
-
 
     //[(print_board board), anims]
 
@@ -744,8 +746,8 @@ def flame_wave:
 // TODO: add 4 range
 def flame_ball:
   let area = vec2_circle_e
-  let hits = {pos board} (board_apply pos (damage 5) board)
-  //let hits = {pos board} (board_apply pos (damage_visual_effect 5) board)
+  //let hits = {pos board} (board_apply pos (damage 5) board)
+  let hits = {pos board} (board_apply pos (damage_visual_effect 5) board)
   (area #hits)
 
 // Selects an enemy up to 1 range. Deals massive damage (20?)
@@ -775,15 +777,14 @@ def shadow_doll: {pos board}
 
 // TODO: launches a ball that travels up to 8 tiles ahead, dealing high damage to first enemy hit
 //def shadow_ball: 
-//  let form = 
 
-// Hits a 3x3 (square) with for high damage (15?).
-// TODO: add 8 range
+// Hits a 3x3 (square) with range 8 for high damage (15?).
 def shadow_flux:
+  dup add_dirs = (add_dirs ~9)
   let area = vec2_circle_c
-  //let hits = {pos board} (board_apply pos (damage 15) board)
   let hits = {pos board} (board_apply pos (damage_visual_effect 15) board) 
-  (area #hits)
+  # {pos dirs board}
+    (area #hits (add_dirs pos dirs) board)
 
 // TODO: Loses half hp. Can't attack on this turn. Can't use on next turn. If Croni dies on this turn, takes the killer with her.
 //def shadow_bond: {side hero hp}
