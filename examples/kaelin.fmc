@@ -241,9 +241,13 @@ def kaelin:
     //let board = (piercing_bolt [24,1] [1,0] board)
     //let board = (quick_shot [1,30] (Cons RIGHT (Cons RIGHT (Cons RIGHT Nil))) board)
     //let board = (erkos_walk [2,30] (Cons [1,0] (Cons [1,0] (Cons [0,-1] Nil))) board)
-    let dirs = (Cons UP (Cons UP (Cons [0,0] (Cons [0,0] (Cons [0,0] (Cons [0,0] (Cons [0,0] (Cons [0,0] Nil))))))))
-    //let dirs = (Cons RIGHT (Cons RIGHT (Cons RIGHT Nil)))
-    let board = (shadow_flux [15,31] dirs board)
+    //let dirs8 = (Cons UP (Cons UP (Cons [0,0] (Cons [0,0] (Cons [0,0] (Cons [0,0] (Cons [0,0] (Cons [0,0] Nil))))))))
+    let dirs5a = (Cons UP (Cons UP (Cons RIGHT (Cons RIGHT (Cons RIGHT Nil))))) 
+    let dirs5b = (Cons UP (Cons UP (Cons UP (Cons LEFT (Cons LEFT Nil))))) 
+    //let dirs3 = (Cons RIGHT (Cons RIGHT (Cons RIGHT Nil)))
+    //let board = (shadow_flux [15,31] dirs board)
+    //let board = (shadow_doll [15,31] dirs board)
+    let board = (explosive_arrow [15,31] dirs5a dirs5b board)
 
     (print_board board)
     //board
@@ -765,15 +769,16 @@ def flame_nova:
   (area #hits)
 
 // Places a doll in an empty tile
-// TODO: add 8 range
-def shadow_doll: {pos board}
+def shadow_doll:
+  dup add_dirs = (add_dirs ~9)
   let case_air     = Wall
   let case_wall    = Wall
   let case_cliff   = Cliff
   let case_throne  = {side} (Throne side)
   let case_unit    = {side hero hp} (Unit side hero hp)
   let change_piece = {t} (t case_air case_wall case_cliff case_throne case_unit)
-  (board_apply pos change_piece board)
+  # {pos dirs board}
+    (board_apply (add_dirs pos dirs) change_piece board)
 
 // TODO: launches a ball that travels up to 8 tiles ahead, dealing high damage to first enemy hit
 //def shadow_ball: 
@@ -801,14 +806,17 @@ def piercing_bolt:
   let hits = {pos board} (board_apply pos (damage_visual_effect 3) board)
   (area #hits) 
 
-// Explosive Arrow : hits up to 2 3x3 (circles). Deals 2 damage.
-// TODO: add 5 range
+// Explosive Arrow : hits up to 2 3x3 (circles) up to 5 range. Deals 2 damage.
 def explosive_arrow:
+  dup add_dirs = (add_dirs ~6)
   let area = vec2_circle_b
   let hits = {pos board} (board_apply pos (damage_visual_effect 2) board)
-  # {pos1 pos2 board}
-    let board = (area #hits pos1 board)
-    let board = (area #hits pos2 board)
+  # {pos dirs1 dirs2 board}
+    get [pos1,pos2] = (vec2_cpy pos)
+    let t_pos1 = (add_dirs pos1 dirs1)
+    let t_pos2 = (add_dirs pos2 dirs2)
+    let board  = (area #hits t_pos1 board)
+    let board  = (area #hits t_pos2 board)
     board
 
 // TODO: mounts/dismounts from a ballista. Can't attack on this turn. While mounted, can't move and attacks range increase to 12.
@@ -821,18 +829,22 @@ def killing_edge:
   (area #hits)
 
 // Select 4 tiles up to 32 range. Prevent all damage from enemies standing on those tiles during this turn.
-// TODO: Add range
 // TODO: Change function applied to the positions to "silence"
-def dodge: {pos1 pos2 pos3 pos4 board}
+def dodge: 
+  dup add_dirs = (add_dirs ~32)
+  # {pos dirs1 dirs2 dirs3 dirs4 board}
+  get [pos1,pos2] = (vec2_cpy pos)
+  get [pos3,pos4] = (vec2_cpy pos1)
+  get [pos5,pos6] = (vec2_cpy pos3)
   let case_air     = Air
   let case_wall    = Wall
   let case_cliff   = Cliff
   let case_throne  = {side} (Throne side)
   let case_unit    = {side hero hp} (Unit side hero hp)
-  let board = (board_apply pos1 (damage_visual_effect 1) board)
-  let board = (board_apply pos2 (damage_visual_effect 1) board)
-  let board = (board_apply pos3 (damage_visual_effect 1) board)
-  let board = (board_apply pos4 (damage_visual_effect 1) board)
+  let board = (board_apply (add_dirs pos2 dirs1) (damage_visual_effect 1) board)
+  let board = (board_apply (add_dirs pos4 dirs1) (damage_visual_effect 1) board)
+  let board = (board_apply (add_dirs pos5 dirs1) (damage_visual_effect 1) board)
+  let board = (board_apply (add_dirs pos6 dirs1) (damage_visual_effect 1) board)
   board
 
 // Hits a 3x3 (square) around. Deals 8 damage.
