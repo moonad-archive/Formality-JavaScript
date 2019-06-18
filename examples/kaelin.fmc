@@ -180,7 +180,7 @@
 // - Tophoro Earth Pull
 // - Tophoro Earth Slam
 // - Kenlua Slash
-// - Snarch Explosive Arrow
+// - Snarch Explosive Shot
 // - Erkos Flame Wave
 // - Erkos Flame Ball
 // - Erkos Flame Nova
@@ -649,10 +649,12 @@ def kaelin:
     # {pos dirs}
       fst (move [pos,dirs])
 
-  dup add_dirs1 = (add_dirs ~1)
-  dup add_dirs2 = (add_dirs ~2)
-  dup add_dirs3 = (add_dirs ~3)
-  dup add_dirs4 = (add_dirs ~4)
+  dup add_dirs1  = (add_dirs ~1)
+  dup add_dirs2  = (add_dirs ~2)
+  dup add_dirs3  = (add_dirs ~3)
+  dup add_dirs4  = (add_dirs ~4)
+  dup add_dirs6  = (add_dirs ~6)
+  dup add_dirs32 = (add_dirs ~32)
 
   // Creates up to 3 earth walls in a 5x5 (circle) around.
   // TODO: Add box
@@ -735,33 +737,22 @@ def kaelin:
     (board_apply (add_dirs4 pos dirs) (damage_visual_effect 3) board)
 
   // Hits all enemies in a 5x1 (line) ahead. Deals 3 damage.
-  dup piercing_bolt =
-    let area = (vec2_wave (ConsF #1 (ConsF #1 (ConsF #1 (ConsF #1 (ConsF #1 NilF))))))
-    let hits = {pos board} (board_apply pos (damage_visual_effect 3) board)
-    (area #hits) 
+  //dup piercing_bolt =
+    //let area = (vec2_wave (ConsF #1 (ConsF #1 (ConsF #1 (ConsF #1 (ConsF #1 NilF))))))
+    //let hits = {pos board} (board_apply pos (damage_visual_effect 3) board)
+    //(area #hits) 
 
-  // Explosive Arrow : hits up to 2 3x3 (circles). Deals 2 damage.
-  // TODO: add 5 range
-  //dup explosive_arrow =
-    //let area = vec2_circle_b
-    //let hits = {pos board} (board_apply pos (damage_visual_effect 2) board)
-    //# {pos1 pos2 board}
-      //let board = (area #hits pos1 board)
-      //let board = (area #hits pos2 board)
-      //board
-
-// Explosive Arrow : hits up to 2 3x3 (circles) up to 5 range. Deals 2 damage.
-//def explosive_arrow:
-//  dup add_dirs = (add_dirs ~6)
-//  let area = vec2_circle_b
-//  let hits = {pos board} (board_apply pos (damage_visual_effect 2) board)
-//  # {pos dirs1 dirs2 board}
-//    get [pos1,pos2] = (vec2_cpy pos)
-//    let t_pos1 = (add_dirs pos1 dirs1)
-//    let t_pos2 = (add_dirs pos2 dirs2)
-//    let board  = (area #hits t_pos1 board)
-//    let board  = (area #hits t_pos2 board)
-//    board
+// Explosive Shot : hits up to 2 3x3 (circles) up to 5 range. Deals 2 damage.
+  dup explosive_shot =
+    let area = vec2_circle_b
+    let hits = {pos board} (board_apply pos (damage_visual_effect 2) board)
+    # {pos dir1 dir2 board}
+      get [pos1,pos2] = (vec2_cpy pos)
+      let t_pos1 = (add_dirs6 pos1 dir1)
+      let t_pos2 = (add_dirs6 pos2 dir2)
+      let board  = (area #hits t_pos1 board)
+      let board  = (area #hits t_pos2 board)
+      board
 
   // Hits a 3x3 (square) around. Deals 3 damage.
   dup killing_edge =
@@ -770,18 +761,20 @@ def kaelin:
     (area #hits)
 
   // Select 4 tiles up to 32 range. Prevent all damage from enemies standing on those tiles during this turn.
-  // TODO: Add range
   // TODO: Change function applied to the positions to "silence"
-  dup dodge = # {pos1 pos2 pos3 pos4 board}
+  dup dodge = # {pos dir1 dir2 dir3 dir4 board}
+    get [pos1,pos2] = (vec2_cpy pos)
+    get [pos3,pos4] = (vec2_cpy pos1)
+    get [pos5,pos6] = (vec2_cpy pos3)
     let case_air     = Air
     let case_wall    = Wall
     let case_cliff   = Cliff
     let case_throne  = {side} (Throne side)
     let case_unit    = {side hero hp} (Unit side hero hp)
-    let board = (board_apply pos1 (damage_visual_effect 1) board)
-    let board = (board_apply pos2 (damage_visual_effect 1) board)
-    let board = (board_apply pos3 (damage_visual_effect 1) board)
-    let board = (board_apply pos4 (damage_visual_effect 1) board)
+    let board = (board_apply (add_dirs32 pos2 dirs1) (damage_visual_effect 1) board)
+    let board = (board_apply (add_dirs32 pos4 dirs1) (damage_visual_effect 1) board)
+    let board = (board_apply (add_dirs32 pos5 dirs1) (damage_visual_effect 1) board)
+    let board = (board_apply (add_dirs32 pos6 dirs1) (damage_visual_effect 1) board)
     board
 
   // Hits a 3x3 (square) around. Deals 8 damage.
