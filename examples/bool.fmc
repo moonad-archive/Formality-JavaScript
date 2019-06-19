@@ -13,3 +13,20 @@ def not: {b}
 
 def eql: {a b}
   (a {x}x not b)
+
+def and: {a b}
+  (a b false)
+
+def nand: {a b}
+  (a (not b) true)
+
+def or: {a b}
+  (a true b)
+
+def nor: {a b}
+  (a false (not b))
+
+def xor: {a b}
+  (a not {x}x b)
+
+def nxor: eql
