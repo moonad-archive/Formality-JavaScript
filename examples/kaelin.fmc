@@ -1130,26 +1130,28 @@ def kaelin:
 
   dup snarch_walk = (walk #SNARCH ~4)
 
-  // TODO: updpate
-  //dup quick_shot = # {pos dirs board}
-    //(board_update (add_dirs4 pos dirs) (damage_visual_effect 3) board)
+  // TODO: update vec2_circle_b to vec2_circle_a
+  // TODO: add "do_if_enemy"
+  dup quick_bolt = 
+    let area = vec2_circle_b
+    let hits = {cpos hpos board} (board_update hpos (damage_visual_effect 3) board)
+    (cast_area ~6 area #hits)
 
-  // TODO: updpate
-  //dup piercing_bolt =
-    //let area = (vec2_wave (ConsF #1 (ConsF #1 (ConsF #1 (ConsF #1 (ConsF #1 NilF))))))
-    //let hits = {pos board} (board_update pos (damage_visual_effect 3) board)
-    //(area #hits) 
+  // TODO: add "do_if_enemy"
+  dup piercing_bolt =
+    let wave  = (vec2_wave_out (ConsF #0 (ConsF #1 (ConsF #1 (ConsF #1 (ConsF #1 (ConsF #1 (ConsF #1 NilF))))))))
+    let hits  = # {cpos hpos dir board} (board_update hpos (damage_visual_effect 2) board)
+    (cast_wave wave hits)
 
-  // Explosive Arrow : hits up to 2 3x3 (circles). Deals 2 damage.
-  // TODO: add 5 range
-  //dup explosive_arrow =
-    //let area = vec2_circle_b
-    //let hits = {pos board} (board_update pos (damage_visual_effect 2) board)
-    //# {pos1 pos2 board}
-      //let board = (area #hits pos1 board)
-      //let board = (area #hits pos2 board)
-      //board
-
+  // TODO: execute 2x cast_area function
+  //dup explosive_arrow = {cpos dir1 dir2 board}
+  //  let area = vec2_circle_b
+  //  let hits = {cpos hpos board} (board_update hpos (damage_visual_effect 2) board)
+  //  get [board, anims] = 
+  //    {cpos dir1 dir2 hpos board} 
+  //    (cast_area ~6 area #hits cpos pos1 board)
+  //  board
+    
   // TODO: mounts/dismounts from a ballista. Can't attack on this turn. While mounted, can't move and attacks range increase to 12.
   //dup ballista = #
 
@@ -1322,15 +1324,18 @@ def kaelin:
       let state = (cast_skill 0 1 MEWRU   MEWRU_WALK    mewru_walk    state log)
       let state = (cast_skill 0 1 ZAGATUR ZAGATUR_WALK  zagatur_walk  state log)
       let state = (cast_skill 1 0 TOPHORO EARTH_PULL    earth_pull    state log)
-      //let state = (cast_skill 1 0 SNARCH  PIERCING_BOLT piercing_bolt state log)
       let state = (cast_skill 1 0 CRONI   SHADOW_FLUX   shadow_flux   state log)
       let state = (cast_skill 0 1 ERKOS   FLAME_WAVE    flame_wave    state log)
       let state = (cast_skill 0 1 ERKOS   FLAME_BALL    flame_ball    state log)
       let state = (cast_skill 0 1 ERKOS   FLAME_NOVA    flame_nova    state log)
-      let state = (cast_skill 0 1 STANCI  LIGHT_HEAL      light_heal  state log)
-      let state = (cast_skill 0 1 STANCI  PROTECT   protect     state log)
-      let state = (cast_skill 0 1 STANCI  RESTORE   restore     state log)
-      let state = (cast_skill 0 1 STANCI  LIGHT     light       state log)
+      let state = (cast_skill 0 1 STANCI  LIGHT_HEAL    light_heal    state log)
+      let state = (cast_skill 0 1 STANCI  PROTECT       protect       state log)
+      let state = (cast_skill 0 1 STANCI  RESTORE       restore       state log)
+      let state = (cast_skill 0 1 STANCI  LIGHT         light         state log)
+
+      let state = (cast_skill 1 0 SNARCH  QUICK_BOLT    quick_bolt    state log)
+      let state = (cast_skill 1 0 SNARCH  PIERCING_BOLT piercing_bolt state log)
+      
       let board = fst state
       board
 
@@ -1507,7 +1512,7 @@ def kaelin:
     let casts = empty_casts
     let casts = (cast FLAME_WAVE [2,30] RIGHT casts)
     let board = (exec_casts casts board)
-    let test0 = |(snd (get_hp_at [4,30] board)) == 55| // Kenlua receies 5 dmg
+    let test0 = |(snd (get_hp_at [4,30] board)) == 55| // Kenlua receives 5 dmg
     test0
     //(print_board board)
 
@@ -1516,7 +1521,7 @@ def kaelin:
     let casts = empty_casts
     let casts = (cast FLAME_BALL [2,30] UP casts)
     let board = (exec_casts casts board)
-    let test0 = |(snd (get_hp_at [1,30] board)) == 75| // Gonk receies 5 dmg
+    let test0 = |(snd (get_hp_at [1,30] board)) == 75| // Gonk receives 5 dmg
     test0
     //(print_board board)
 
@@ -1526,25 +1531,46 @@ def kaelin:
     //let casts = empty_casts
     //let casts = (cast FLAME_NOVA [2,30] casts)
     //let board = (exec_casts casts board)
-    //let test0 = |(snd (get_hp_at [1,30] board)) == 75| // Gonk receies 5 dmg
+    //let test0 = |(snd (get_hp_at [1,30] board)) == 75| // Gonk receives 5 dmg
     //test0
     //(print_board board)
 
+  dup test_quick_bolt = #
+    let board = new_board
+    get [board, anim] = (quick_bolt [30,1] (Cons LEFT (Cons LEFT (Cons LEFT Nil))) board)
+    let test0 = |(snd (get_hp_at [27,1] board)) == 37| // Stanci receives 3 dmg
+    test0
+    //(print_board board)
+
+  dup test_piercing_bolt = #
+    let board = new_board
+    let board = (piercing_bolt [15,15] RIGHT board)
+    //let test0 = |(snd (get_hp_at [27,1] board)) == 37| // Stanci receives 3 dmg
+    //test0
+    (print_board board)
+
+  //dup test_explosive_arrow = #
+  //  let board = new_board
+  //  let board = (explosive_arrow [15,15] [17,20] board)
+    //let test0 = |(snd (get_hp_at [27,1] board)) == 37| // Stanci receives 3 dmg
+    //test0
+  //  (print_board board)
+
   dup all_tests = #
-    let test00 = ["earth_pull"  , test_earth_pull]
-    let test01 = ["earth_lock"  , test_earth_lock]
-    let test02 = ["earth_wall"  , test_earth_wall]
-    let test03 = ["breath"      , test_breath]
-    let test04 = ["empathy"     , test_empathy]
-    let test05 = ["shadow_flux" , test_shadow_flux]
-    let test06 = ["light_heal"  , test_light_heal]
-    let test07 = ["test_protect", test_protect]
-    let test08 = ["test_restore", test_restore]
-    let test09 = ["test_light"  , test_light]
-    let test10 = ["test_flame_wave",test_flame_wave]
-    let test11 = ["test_flame_ball",test_flame_ball]
-    let test12 = ["_"           , 1]
-    let test13 = ["_"           , 1]
+    let test00 = ["earth_pull"     , test_earth_pull]
+    let test01 = ["earth_lock"     , test_earth_lock]
+    let test02 = ["earth_wall"     , test_earth_wall]
+    let test03 = ["breath"         , test_breath]
+    let test04 = ["empathy"        , test_empathy]
+    let test05 = ["shadow_flux"    , test_shadow_flux]
+    let test06 = ["light_heal"     , test_light_heal]
+    let test07 = ["test_protect"   , test_protect]
+    let test08 = ["test_restore"   , test_restore]
+    let test09 = ["test_light"     , test_light]
+    let test10 = ["test_flame_wave", test_flame_wave]
+    let test11 = ["test_flame_ball", test_flame_ball]
+    let test12 = ["test_quick_bolt", test_quick_bolt]
+    let test13 = ["test_piercing_bolt", 1]
     let test14 = ["_"           , 1]
     let test15 = ["_"           , 1]
     let test16 = ["_"           , 1]
@@ -1575,6 +1601,7 @@ def kaelin:
 
   dup example = #
     all_tests
+    //test_piercing_bolt
 
   dup export =
     [#new_board,
