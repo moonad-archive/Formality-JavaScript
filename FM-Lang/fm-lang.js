@@ -657,7 +657,7 @@ const parse = async (code, tokenify, auto_unbox = true) => {
     }
 
     // Operators
-    while (match_here(" ")) {
+    while (idx < code.length) {
       var matched = false;
       for (var i = 0; i < op_inits.length; ++i) {
         var op_init = op_inits[i];
@@ -674,9 +674,10 @@ const parse = async (code, tokenify, auto_unbox = true) => {
           } else {
             parsed = App(App(Ref(func), parsed, false), argm, false);
           }
+          break;
         }
-        if (matched) break;
       }
+      if (!matched) break;
     }
 
     return parsed;
