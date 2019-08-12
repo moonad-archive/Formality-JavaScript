@@ -1,6 +1,6 @@
 ## Formality-JavaScript
 
-You can access the Wiki [here](https://github.com/moonad/Formality/wiki)
+You can access Formality's documentation [here](https://docs.formality-lang.org/en/latest/)
 
 This repository exports the following npm packages:
 
